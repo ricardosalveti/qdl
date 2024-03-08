@@ -340,6 +340,7 @@ static int firehose_program(struct qdl_device *qdl, struct program *program, int
 	if (program->filename)
 		xml_setpropf(node, "filename", "%s", program->filename);
 
+	fprintf(stderr, "[PROGRAM] Please wait, flashing \"%s\" now...\n", program->label);
 	ret = firehose_write(qdl, doc);
 	if (ret < 0) {
 		fprintf(stderr, "[PROGRAM] failed to write program command\n");
@@ -357,6 +358,7 @@ static int firehose_program(struct qdl_device *qdl, struct program *program, int
 	lseek(fd, program->file_offset * program->sector_size, SEEK_SET);
 	left = num_sectors;
 	while (left > 0) {
+		fprintf(stderr, "[PROGRAM] %d sectors remaining out of %d\r", left, num_sectors);
 		chunk_size = MIN(max_payload_size / program->sector_size, left);
 
 		n = read(fd, buf, chunk_size * program->sector_size);
@@ -375,6 +377,8 @@ static int firehose_program(struct qdl_device *qdl, struct program *program, int
 
 		left -= chunk_size;
 	}
+
+	fprintf(stderr, "\n");
 
 	t = time(NULL) - t0;
 
